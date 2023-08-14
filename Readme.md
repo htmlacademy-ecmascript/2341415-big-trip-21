@@ -1,7 +1,7 @@
 # Проект «Большое путешествие»
 
 * Студент: [Elena Vlasenko](https://up.htmlacademy.ru/ecmascript/21/user/2341415).
-* Наставник: `Неизвестно`.
+* Наставник: `Gleb Kleckov`.
 
 ---
 
