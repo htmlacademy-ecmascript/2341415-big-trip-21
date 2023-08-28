@@ -1,6 +1,3 @@
-// const POINT_COUNT = 3;
-// const PHOTOS_COUNT = [5,12,3,17,10,4];
-
 const POINT_TYPES = [
   'Taxi',
   'Bus',
