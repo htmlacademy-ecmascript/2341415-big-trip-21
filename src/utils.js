@@ -25,6 +25,4 @@ function isPointExpired(dueDate) {
   return dueDate && dayjs().isAfter(dueDate, 'D');
 }
 
-
-
 export {getRandomArrayElement, humanizePointDueDate, isPointExpired, getRandomInteger, getHours};
