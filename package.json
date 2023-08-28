@@ -29,5 +29,9 @@
   },
   "engines": {
     "node": "18"
+  },
+  "dependencies": {
+    "dayjs": "1.11.9",
+    "date-fns": "2.30.0"
   }
 }
