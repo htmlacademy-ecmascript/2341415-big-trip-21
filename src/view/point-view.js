@@ -1,6 +1,8 @@
-import {createElement} from '../render.js';
 import { format, differenceInCalendarDays, differenceInHours, differenceInMinutes, formatDuration } from 'date-fns';
 import { humanizePointDueDate } from '../utils.js';
+import AbstractView from '../framework/view/abstract-view.js';
+import { hide, show } from '../utils.js';
+import { DURATION } from '../const.js';
 
 function getDurationString(from, to) {
   const days = differenceInCalendarDays(to, from);
@@ -9,8 +11,8 @@ function getDurationString(from, to) {
   const formated = formatDuration(
     {
       days,
-      hours: differenceInHours(to, from) - 24 * days,
-      minutes: differenceInMinutes(to, from) - hours * 60,
+      hours: differenceInHours(to, from) - DURATION.hoursInDay * days,
+      minutes: differenceInMinutes(to, from) - hours * DURATION.minInHour,
     },
     {
       format: ['days', 'hours', 'minutes'],
@@ -110,24 +112,32 @@ function createPointTemplate({ point, destination, offers, selectedOfferIds = [o
 </li>`;
 }
 
-export default class PointView {
-  constructor({pointModel}){
+export default class PointView extends AbstractView {
+  #handleEditClick = null;
+  constructor(pointModel, listeners){
+    const { onEditClick } = listeners;
+    super();
     this.point = pointModel;
+    this.#handleEditClick = onEditClick;
+
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#editClickHandler);
   }
 
-  getTemplate() {
+  get template() {
     return createPointTemplate(this.point);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
+  hide() {
+    hide(this.element.querySelector('.event'));
   }
 
-  removeElement() {
-    this.element = null;
+  show() {
+    show(this.element.querySelector('.event'));
   }
+
+  #editClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleEditClick(this);
+  };
 }

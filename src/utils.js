@@ -17,7 +17,7 @@ function humanizePointDueDate(dueDate) {
   return dueDate ? format(dueDate, DATE_FORMAT) : '';
 }
 
-function getHours (date) {
+function getHours(date) {
   return dayjs(date).format('H');
 }
 
@@ -25,4 +25,48 @@ function isPointExpired(dueDate) {
   return dueDate && dayjs().isAfter(dueDate, 'D');
 }
 
-export {getRandomArrayElement, humanizePointDueDate, isPointExpired, getRandomInteger, getHours};
+function logFormData(formData) {
+  for (const [key, value] of formData.entries()) {
+    // console.log(key, ': ', value);
+    return [key, value];
+  }
+}
+
+function clear(element) {
+  element.innerHTML = '';
+}
+
+// const getUnique = (arr) => {
+//   const uniqueValues = [];
+
+//   for (const it of arr) {
+//     if (!uniqueValues.includes(it)) {
+//       uniqueValues.push(it);
+//     }
+//   }
+
+//   return uniqueValues;
+// };
+
+// const debounce = (callback, timeoutDelay) => {
+//   let timeoutId;
+//   return (...rest) => {
+//     clearTimeout(timeoutId);
+//     timeoutId = setTimeout(() => callback.apply(this, rest), timeoutDelay);
+//   };
+// };
+
+function hide(el) {
+  el.classList.add('hidden');
+}
+const show = (el) => el.classList.remove('hidden');
+
+// const disable = (el) => {
+//   el.disabled = true;
+// };
+
+// const enable = (el) => {
+//   el.disabled = false;
+// };
+
+export {getRandomArrayElement, humanizePointDueDate, isPointExpired, getRandomInteger, getHours, logFormData, clear, hide, show};

@@ -66,11 +66,11 @@ function generateList(length = getRandomInteger(1, 5), generateItem) {
   return Array.from({ length }, generateItem);
 }
 
-function generatePoints(length = getRandomInteger(1, 5)) {
+function generatePoints(length) {
   return generateList(length, generatePoint);
 }
 
-function generateOffers(length = getRandomInteger(1, 5)) {
+function generateOffers(length) {
   return generateList(length, generateOffer);
 }
 

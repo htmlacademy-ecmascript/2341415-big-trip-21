@@ -1,6 +1,6 @@
-import {createElement} from '../render.js';
 import {POINT_TYPES} from '../const.js';
 import { format } from 'date-fns';
+import AbstractView from '../framework/view/abstract-view.js';
 
 function createPointTypeTemplate(type, checked = false) {
 
@@ -105,25 +105,53 @@ function createPointEditTemplate({ point, destination, offers, selectedOfferIds 
 </li>`;
 }
 
-export default class PointEditView {
+export default class PointEditView extends AbstractView {
 
-  constructor(options) {
+  #handleFormSubmit = null;
+  #handlerFormEsc = null;
+  #handleFormCancel = null;
+  #formData = null;
+
+  constructor(options, listeners) {
+    super();
+    const {onFormSubmit, onEsc, onCancel} = listeners;
     this.options = options;
+    this.#handleFormSubmit = onFormSubmit;
+    this.#handlerFormEsc = onEsc;
+    this.#handleFormCancel = onCancel;
+
+    const form = this.element.querySelector('form');
+    const submitter = this.element.querySelector('.event__save-btn');
+    const canceler = this.element.querySelector('.event__reset-btn');
+    this.#formData = new FormData(form, submitter);
+    form.addEventListener('submit', this.#formSubmitHandler);
+    document.addEventListener('keydown', this.#formEscHandler);
+    canceler.addEventListener('click', this.#formCancelHandler);
   }
 
-  getTemplate() {
+  get template() {
     return createPointEditTemplate(this.options);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
+  close() {
+    document.removeEventListener('keydown', this.#formEscHandler);
+    this.element.remove();
+  }
+
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormSubmit(this.#formData);
+  };
+
+  #formCancelHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormCancel();
+  };
+
+  #formEscHandler = (evt) => {
+    if (evt.code === 'Escape') {
+      evt.preventDefault();
+      this.#handlerFormEsc();
     }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
-  }
+  };
 }

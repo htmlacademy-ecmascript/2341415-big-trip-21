@@ -24,27 +24,14 @@ const DURATION = {
   HOUR: 5,
   DAY: 5,
   MIN: 50,
+  hoursInDay: 24,
+  minInHour: 60,
 };
 
 const PRICE = {
   MIN: 1,
   MAX: 1000,
 };
-
-// const POINT_EVENT_STOP = [
-//   'Checkin',
-//   'Sightseeing',
-//   'Restaurant'
-// ];
-
-// const POINT_EVENT_MOVING = [
-//   'Taxi',
-//   'Bus',
-//   'Train',
-//   'Ship',
-//   'Drive',
-//   'Flight'
-// ];
 
 const CITIES = [
   'Amsterdam',
