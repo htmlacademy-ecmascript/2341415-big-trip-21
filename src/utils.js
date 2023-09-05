@@ -27,7 +27,8 @@ function isPointExpired(dueDate) {
 
 function logFormData(formData) {
   for (const [key, value] of formData.entries()) {
-    console.log(key, ': ', value);
+    // console.log(key, ': ', value);
+    return [key, value];
   }
 }
 
