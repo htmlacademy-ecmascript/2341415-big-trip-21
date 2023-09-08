@@ -43,4 +43,11 @@ const CITIES = [
   'Boston'
 ];
 
-export { POINT_TYPES, DESCRIPTIONS, DURATION, PRICE, CITIES, OFFERS };
+const FILTERTYPE = {
+  EVERYTHING: 'everything',
+  FUTURE: 'future',
+  PRESENT: 'present',
+  PAST: 'past',
+};
+
+export { POINT_TYPES, DESCRIPTIONS, DURATION, PRICE, CITIES, OFFERS, FILTERTYPE };
