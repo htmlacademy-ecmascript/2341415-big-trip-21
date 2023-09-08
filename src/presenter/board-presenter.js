@@ -3,13 +3,13 @@ import SortView from '../view/sort-view.js';
 import EventListView from '../view/event-list-view.js';
 import PointEditView from '../view/point-edit-view.js';
 import PointView from '../view/point-view.js';
-import { logFormData, } from '../utils.js';
+import { logFormData, clear } from '../utils.js';
 import EditFormContainerView from '../view/edit-form-container-view.js';
+import NoPointView from '../view/no-point-view.js';
 
 export default class BoardPresenter {
   #container;
   #pointsModel;
-  #boardPoints = [];
 
   #sortComponent = new SortView();
   #editFormContainer = new EditFormContainerView();
@@ -22,19 +22,29 @@ export default class BoardPresenter {
   }
 
   init() {
-    this.#boardPoints = this.#pointsModel.get();
-
     render(this.#sortComponent, this.#container);
     render(this.#editFormContainer, this.#container);
     render(this.#eventListComponent, this.#container);
 
-    for (const pointModel of this.#boardPoints) {
+    this.#pointsModel.subscribe((filtredPoints) => this.#reRenderPointView(filtredPoints));
+
+    this.#reRenderPointView(this.#pointsModel.filtredPoints);
+  }
+
+  #reRenderPointView(pointModels) {
+    clear(this.#eventListComponent.element);
+
+    for (const pointModel of pointModels) {
       this.#renderPoint(
         pointModel,
         {
           onEditClick: (pointView) => this.#onEditClick(pointView)
         }
       );
+    }
+
+    if (this.#pointsModel.filtredPoints.length === 0) {
+      render(new NoPointView(), this.#eventListComponent.element);
     }
   }
 

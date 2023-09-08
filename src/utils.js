@@ -21,9 +21,6 @@ function getHours(date) {
   return dayjs(date).format('H');
 }
 
-function isPointExpired(dueDate) {
-  return dueDate && dayjs().isAfter(dueDate, 'D');
-}
 
 function logFormData(formData) {
   for (const [key, value] of formData.entries()) {
@@ -69,4 +66,4 @@ const show = (el) => el.classList.remove('hidden');
 //   el.disabled = false;
 // };
 
-export {getRandomArrayElement, humanizePointDueDate, isPointExpired, getRandomInteger, getHours, logFormData, clear, hide, show};
+export {getRandomArrayElement, humanizePointDueDate, getRandomInteger, getHours, logFormData, clear, hide, show };
