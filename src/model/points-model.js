@@ -1,21 +1,15 @@
-import { differenceInDays } from 'date-fns';
 import { FILTERTYPE } from '../const.js';
+import { sortPrice, sortTime, sortDay, isExpired, isAfterToday } from '../utils.js';
+import { SORT_TYPE } from '../const.js';
 
-function isExpired(dueDate) {
-  return differenceInDays(new Date(), dueDate) > 0;
-}
-
-function isAfterToday(dueDate) {
-  return differenceInDays(dueDate, new Date()) > 0;
-}
-
-export default class FiltersController {
+export default class PointsModel {
   #selectedFilter = null;
   #points;
   #pastPoints = [];
   #futurePoints = [];
   #todayPoints = [];
   #subscribers = [];
+  #sortBy = SORT_TYPE.DAY;
 
   constructor({ points }) {
     this.#points = points;
@@ -26,34 +20,59 @@ export default class FiltersController {
     return Object.keys(FILTERTYPE);
   }
 
+  setSorting(sortBy) {
+    if (sortBy) {
+      this.#sortBy = sortBy;
+      this.#notify();
+    }
+  }
+
   selectFilter(filterType) {
     this.#selectedFilter = filterType;
+    this.#sortBy = SORT_TYPE.DAY;
     this.#notify();
+  }
+
+  get sortType() {
+    return this.#sortBy;
   }
 
   get availableFilterTypes() {
     const result = [FILTERTYPE.EVERYTHING];
 
-    if(this.#pastPoints.length > 0) {
+    if(this.#pastPoints.length) {
       result.push(FILTERTYPE.PAST);
     }
 
-    if(this.#futurePoints.length > 0) {
+    if(this.#futurePoints.length) {
       result.push(FILTERTYPE.FUTURE);
     }
 
-    if(this.#todayPoints.length > 0) {
+    if(this.#todayPoints.length) {
       result.push(FILTERTYPE.PRESENT);
     }
 
     return result;
   }
 
+  get points() {
+    return this.#sortedPoints;
+  }
+
   subscribe(fn) {
     this.#subscribers.push(fn);
   }
 
-  get filtredPoints() {
+  getPoint(id) {
+    return this.#points.find((it) => it.point.id === id);
+  }
+
+  switchPointIsFavorite(id) {
+    const point = this.getPoint(id);
+    point.point.isFavorite = !point.point.isFavorite;
+  }
+
+  get #filtredPoints() {
     if(this.#selectedFilter === FILTERTYPE.PAST) {
       return this.#pastPoints;
     }
@@ -67,18 +86,31 @@ export default class FiltersController {
   }
 
   #notify () {
-    this.#subscribers.forEach((fn) => fn(this.filtredPoints));
+    this.#subscribers.forEach((fn) => fn(this.points));
   }
 
   #segregatePointsByDate() {
-    for (const it of this.#points) {
-      if (isExpired(it.point.dateTo)) {
-        this.#pastPoints.push(it);
-      } else if(isAfterToday(it.point.dateFrom)) {
-        this.#futurePoints.push(it);
+    for (const point of this.#points) {
+      if (isExpired(point.point.dateTo)) {
+        this.#pastPoints.push(point);
+      } else if(isAfterToday(point.point.dateFrom)) {
+        this.#futurePoints.push(point);
       } else {
-        this.#todayPoints.push(it);
+        this.#todayPoints.push(point);
       }
     }
+  }
+
+  get #sorter() {
+    switch (this.#sortBy) {
+      case SORT_TYPE.TIME: return sortTime;
+      case SORT_TYPE.PRICE: return sortPrice;
+      case SORT_TYPE.DAY: return sortDay;
+      default: return (list) => list;
+    }
+  }
+
+  get #sortedPoints() {
+    return [...this.#filtredPoints].sort(this.#sorter);
   }
 }

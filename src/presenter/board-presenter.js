@@ -1,85 +1,74 @@
 import { render } from '../render.js';
 import SortView from '../view/sort-view.js';
 import EventListView from '../view/event-list-view.js';
-import PointEditView from '../view/point-edit-view.js';
-import PointView from '../view/point-view.js';
-import { logFormData, clear } from '../utils.js';
 import EditFormContainerView from '../view/edit-form-container-view.js';
-import NoPointView from '../view/no-point-view.js';
+import { RenderPosition } from '../render.js';
+import PointPresenter from './point-presenter.js';
+import { updateItem } from '../utils.js';
+import FilterView from '../view/filter-view.js';
 
 export default class BoardPresenter {
   #container;
+  #pointPresenter;
+  #boardPoints = [];
   #pointsModel;
+  #filterElement;
 
-  #sortComponent = new SortView();
+  #sortComponent = null;
   #editFormContainer = new EditFormContainerView();
   #eventListComponent = new EventListView();
-  #editFormView = null;
+  #sourcedBoardPoints = [];
 
-  constructor({container, pointsModel }) {
-    this.#container = container;
+  constructor({container, pointsModel, filterElement }) {
     this.#pointsModel = pointsModel;
+    this.#container = container;
+    this.#boardPoints = pointsModel.filtredPoints;
+    this.#sourcedBoardPoints = pointsModel.filtredPoints;
+    this.#filterElement = filterElement;
+    this.#pointPresenter = new PointPresenter({
+      pointListContainer: this.#eventListComponent,
+      onDataChange: this.#handlePointChange,
+      pointsModel,
+    });
   }
 
   init() {
-    render(this.#sortComponent, this.#container);
+    this.#pointPresenter.init();
     render(this.#editFormContainer, this.#container);
     render(this.#eventListComponent, this.#container);
-
-    this.#pointsModel.subscribe((filtredPoints) => this.#reRenderPointView(filtredPoints));
-
-    this.#reRenderPointView(this.#pointsModel.filtredPoints);
+    this.#renderSort();
+    this.#renderFilters();
   }
 
-  #reRenderPointView(pointModels) {
-    clear(this.#eventListComponent.element);
-
-    for (const pointModel of pointModels) {
-      this.#renderPoint(
-        pointModel,
-        {
-          onEditClick: (pointView) => this.#onEditClick(pointView)
-        }
-      );
-    }
-
-    if (this.#pointsModel.filtredPoints.length === 0) {
-      render(new NoPointView(), this.#eventListComponent.element);
-    }
-  }
-
-  #closeForm(pointView) {
-    this.#editFormView.close();
-    pointView.show();
-  }
-
-  #renderPoint(pointModel, listeners) {
-    const pointComponent = new PointView(pointModel, listeners);
-    render(pointComponent, this.#eventListComponent.element);
-  }
-
-  #onEditClick(pointView) {
-    pointView.hide();
-
-    if(this.#editFormView) {
-      this.#editFormView.close();
-    }
-
-    this.#editFormView = new PointEditView(
-      pointView.point,
-      {
-        onFormSubmit: (formData) => {
-          logFormData(formData);
-          this.#editFormView.close();
-          pointView.show();
-        },
-        onEsc: () => this.#closeForm(pointView),
-        onCancel: () => this.#closeForm(pointView),
-      }
-    );
+  #renderFilters() {
     render(
-      this.#editFormView,
-      pointView.element
+      new FilterView(
+        {
+          filters: this.#pointsModel.filterTypes,
+          availableFilters: this.#pointsModel.availableFilterTypes
+        },
+        {
+          onFilterClick: (filterType) => {
+            this.#pointsModel.selectFilter(filterType);
+          },
+        }
+      ),
+      this.#filterElement
     );
   }
+
+  #renderSort() {
+    this.#sortComponent = new SortView({
+      sortType: this.#pointsModel.sortType,
+      onSortTypeChange: (sortBy) => this.#pointsModel.setSorting(sortBy),
+    });
+
+    render(this.#sortComponent, this.#container, RenderPosition.AFTERBEGIN);
+  }
+
+  #handlePointChange = (updatedPoint) => {
+    this.#boardPoints = updateItem(this.#boardPoints, updatedPoint);
+    this.#sourcedBoardPoints = updateItem(this.#sourcedBoardPoints, updatedPoint);
+    this.#pointPresenter.get(updatedPoint.id).init(updatedPoint);
+  };
 }
