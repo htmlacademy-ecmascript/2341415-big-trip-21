@@ -1,11 +1,11 @@
-import { format, differenceInCalendarDays, differenceInHours, differenceInMinutes, formatDuration } from 'date-fns';
+import { format, differenceInDays, differenceInHours, differenceInMinutes, formatDuration } from 'date-fns';
 import { humanizePointDueDate } from '../utils.js';
 import AbstractView from '../framework/view/abstract-view.js';
 import { hide, show } from '../utils.js';
 import { DURATION } from '../const.js';
 
 function getDurationString(from, to) {
-  const days = differenceInCalendarDays(to, from);
+  const days = differenceInDays(to, from);
   const hours = differenceInHours(to, from);
 
   const formated = formatDuration(
@@ -40,7 +40,7 @@ function createOfferTemplate({ title, price, }) {
 function createPointTemplate({ point, destination, offers, selectedOfferIds = [offers.at(0).id]}) {
 
   const selectedOffers = offers.filter((it) => selectedOfferIds.includes(it.id));
-  const { dateFrom, dateTo, type, basePrice } = point;
+  const { dateFrom, dateTo, type, basePrice, isFavorite } = point;
   const typeImgPath = type.toLowerCase();
 
   const { city } = destination;
@@ -67,7 +67,7 @@ function createPointTemplate({ point, destination, offers, selectedOfferIds = [o
     </p>
     <h4 class="visually-hidden">Offers:</h4>
     <ul class="event__selected-offers">${selectedOffers.map(createOfferTemplate).join('')}</ul>
-    <button class="event__favorite-btn event__favorite-btn--active" type="button">
+    <button class="event__favorite-btn${isFavorite ? ' event__favorite-btn--active' : ''}" type="button">
       <span class="visually-hidden">Add to favorite</span>
       <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
         <path d="M14 21l-8.22899 4.3262 1.57159-9.1631L.685209 9.67376 9.8855 8.33688 14 0l4.1145 8.33688 9.2003 1.33688-6.6574 6.48934 1.5716 9.1631L14 21z"/>
@@ -114,18 +114,27 @@ function createPointTemplate({ point, destination, offers, selectedOfferIds = [o
 
 export default class PointView extends AbstractView {
   #handleEditClick = null;
-  constructor(pointModel, listeners){
-    const { onEditClick } = listeners;
+  #handleFavoriteClick = null;
+
+  constructor(point, listeners){
+    const { onEditClick, onFavoriteClick } = listeners;
     super();
-    this.point = pointModel;
+    this.point = point;
     this.#handleEditClick = onEditClick;
+    this.#handleFavoriteClick = onFavoriteClick;
 
     this.element.querySelector('.event__rollup-btn')
       .addEventListener('click', this.#editClickHandler);
+    this.element.querySelector('.event__favorite-btn')
+      .addEventListener('click', this. #favoriteClickHandler);
   }
 
   get template() {
     return createPointTemplate(this.point);
+  }
+
+  get pointId() {
+    return this.point.point.id;
   }
 
   hide() {
@@ -140,4 +149,10 @@ export default class PointView extends AbstractView {
     evt.preventDefault();
     this.#handleEditClick(this);
   };
+
+  #favoriteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFavoriteClick(this);
+  };
+
 }

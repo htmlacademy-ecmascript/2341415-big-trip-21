@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
-import { format } from 'date-fns';
+import { format, differenceInMinutes, differenceInDays } from 'date-fns';
+
 const DATE_FORMAT = 'MMM d';
 
 function getRandomArrayElement(items) {
@@ -65,5 +66,30 @@ const show = (el) => el.classList.remove('hidden');
 // const enable = (el) => {
 //   el.disabled = false;
 // };
+function isExpired(dueDate) {
+  return differenceInDays(new Date(), dueDate) > 0;
+}
 
-export {getRandomArrayElement, humanizePointDueDate, getRandomInteger, getHours, logFormData, clear, hide, show };
+function isAfterToday(dueDate) {
+  return differenceInDays(dueDate, new Date()) > 0;
+}
+
+function updateItem(items, update) {
+  return items.map((item) => item.id === update.id ? update : item);
+}
+
+function sortDay(pointA, pointB) {
+  return pointA.point.dateFrom.getTime() - pointB.point.dateTo.getTime();
+}
+
+function sortTime(pointA, pointB) {
+  const durationA = differenceInMinutes(pointA.point.dateTo, pointA.point.dateFrom);
+  const durationB = differenceInMinutes(pointB.point.dateTo, pointB.point.dateFrom);
+  return durationB - durationA;
+}
+
+function sortPrice(pointA, pointB) {
+  return pointB.point.basePrice - pointA.point.basePrice;
+}
+
+export {getRandomArrayElement, humanizePointDueDate, getRandomInteger, getHours, logFormData, clear, hide, show, updateItem, sortTime, sortPrice, sortDay, isExpired, isAfterToday };

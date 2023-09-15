@@ -119,7 +119,6 @@ export default class PointEditView extends AbstractView {
     this.#handleFormSubmit = onFormSubmit;
     this.#handlerFormEsc = onEsc;
     this.#handleFormCancel = onCancel;
-
     const form = this.element.querySelector('form');
     const submitter = this.element.querySelector('.event__save-btn');
     const canceler = this.element.querySelector('.event__reset-btn');
