@@ -1,22 +1,34 @@
-const POINT_TYPES = [
-  'Taxi',
-  'Bus',
-  'Train',
-  'Ship',
-  'Drive',
-  'Flight',
-  'Check-in',
-  'Sightseeing',
-  'Restaurant'
-];
+const POINT_TYPES = {
+  taxi: 'Taxi',
+  bus: 'Bus',
+  train: 'Train',
+  ship: 'Ship',
+  drive: 'Drive',
+  flight: 'Flight',
+  checkIn: 'Check-in',
+  sightseeing: 'Sightseeing',
+  restaurant: 'Restaurant'
+};
 
-const OFFERS = [
-  'Add luggage',
-  'Switch to comfort',
-  'Switch to comfort',
-  'Choose seats',
-  'Travel by train'
-];
+const OFFERS = {
+  addLuggage: 'Add luggage',
+  switchToComfortClass: 'Switch to comfort class',
+  addMeal: 'Add meal',
+  chooseSeats: 'Choose seats',
+  travelByTrain: 'Travel by train',
+};
+
+const POINT_TYPE_OFFERS = {
+  [POINT_TYPES.taxi.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}],
+  [POINT_TYPES.bus.toLowerCase()]:[{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}],
+  [POINT_TYPES.train.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}],
+  [POINT_TYPES.ship.toLowerCase()]: [OFFERS.addMeal, {id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}],
+  [POINT_TYPES.drive.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}, {id: crypto.randomUUID(), title: OFFERS.addMeal, price: 181}],
+  [POINT_TYPES.flight.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181},{id: crypto.randomUUID(), title: OFFERS.addMeal, price: 181}],
+  [POINT_TYPES.checkIn.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181},{id: crypto.randomUUID(), title: OFFERS.addMeal, price: 181}],
+  [POINT_TYPES.sightseeing.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181},{id: crypto.randomUUID(), title: OFFERS.addMeal, price: 181}],
+  [POINT_TYPES.restaurant.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181},{id: crypto.randomUUID(), title: OFFERS.addMeal, price: 181}],
+};
 
 const DESCRIPTIONS = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras aliquet varius magna, non porta ligula feugiat eget.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras aliquet varius magna, non porta ligula feugiat eget.';
 
@@ -56,4 +68,4 @@ const SORT_TYPE = {
   PRICE: 'price',
 };
 
-export { POINT_TYPES, DESCRIPTIONS, DURATION, PRICE, CITIES, OFFERS, FILTERTYPE, SORT_TYPE };
+export { POINT_TYPES, DESCRIPTIONS, DURATION, PRICE, CITIES, OFFERS, FILTERTYPE, SORT_TYPE, POINT_TYPE_OFFERS };

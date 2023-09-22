@@ -3,6 +3,7 @@ import { render } from '../render.js';
 import PointView from '../view/point-view.js';
 import PointEditView from '../view/point-edit-view.js';
 import NoPointView from '../view/no-point-view.js';
+import { cityDescriptions } from '../mock/fake-data.js';
 
 export default class PointPresenter {
   #pointListContainer;
@@ -59,7 +60,10 @@ export default class PointPresenter {
     }
 
     this.#editFormView = new PointEditView(
-      pointView.point,
+      {
+        point: pointView.point,
+        cityDescriptions
+      },
       {
         onFormSubmit: (formData) => {
           logFormData(formData);
