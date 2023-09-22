@@ -5,38 +5,46 @@ import { getDate } from './utils.js';
 function generateOffer() {
   return {
     id: crypto.randomUUID(),
-    title: OFFERS.at(getRandomInteger(0, OFFERS.length - 1)),
+    title: Object.values(OFFERS).at(getRandomInteger(0, OFFERS.length - 1)),
     price: getRandomInteger(PRICE.MIN, PRICE.MAX),
   };
 }
 
-function generateDestination() {
+function generatePictures(city) {
+  return {
+    src: `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
+    description: `${city}${DESCRIPTIONS}`,
+  };
+}
+
+function generateDestination(city) {
   const id = crypto.randomUUID();
-  const city = getRandomArrayElement(CITIES);
+  // const city = getRandomArrayElement(CITIES);
   const description = DESCRIPTIONS;
 
   return {
     id,
     city,
     description,
-    pictures: [
-      {
-        src: `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
-        description: `${city}${description}`,
-      },
-      {
-        src: `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
-        description: `${city}${description}`,
-      },
-      {
-        src: `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
-        description: `${city}${description}`,
-      },
-      {
-        src: `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
-        description: `${city}${description}`,
-      }
-    ],
+    pictures: Array.from({ length: getRandomInteger(1, 3) }, () => generatePictures(city))
+    // pictures: [
+    //   {
+    //     src: `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
+    //     description: `${city}${description}`,
+    //   },
+    //   {
+    //     src: `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
+    //     description: `${city}${description}`,
+    //   },
+    //   {
+    //     src: `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
+    //     description: `${city}${description}`,
+    //   },
+    //   {
+    //     src: `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
+    //     description: `${city}${description}`,
+    //   }
+    // ],
   };
 }
 
@@ -54,9 +62,9 @@ function generatePointOptions(destinationId, pointType) {
 }
 
 function generatePoint() {
-  const pointType = getRandomArrayElement(POINT_TYPES);
+  const pointType = getRandomArrayElement(Object.values(POINT_TYPES));
   const offers = generateOffers();
-  const destination = generateDestination();
+  const destination = generateDestination(getRandomArrayElement(CITIES));
   const point = generatePointOptions(destination.id, pointType);
 
   return { offers, destination, point };
@@ -74,6 +82,7 @@ function generateOffers(length) {
   return generateList(length, generateOffer);
 }
 
-export default {
-  points: generatePoints(6),
-};
+const points = generatePoints(6);
+const cityDescriptions = CITIES.map((city) => generateDestination(city));
+
+export { points, cityDescriptions };
