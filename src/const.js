@@ -22,7 +22,7 @@ const POINT_TYPE_OFFERS = {
   [POINT_TYPES.taxi.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}],
   [POINT_TYPES.bus.toLowerCase()]:[{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}],
   [POINT_TYPES.train.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}],
-  [POINT_TYPES.ship.toLowerCase()]: [OFFERS.addMeal, {id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}],
+  [POINT_TYPES.ship.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}],
   [POINT_TYPES.drive.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181}, {id: crypto.randomUUID(), title: OFFERS.addMeal, price: 181}],
   [POINT_TYPES.flight.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181},{id: crypto.randomUUID(), title: OFFERS.addMeal, price: 181}],
   [POINT_TYPES.checkIn.toLowerCase()]: [{id: crypto.randomUUID(), title: OFFERS.addLuggage, price: 181},{id: crypto.randomUUID(), title: OFFERS.addMeal, price: 181}],
@@ -68,4 +68,6 @@ const SORT_TYPE = {
   PRICE: 'price',
 };
 
-export { POINT_TYPES, DESCRIPTIONS, DURATION, PRICE, CITIES, OFFERS, FILTERTYPE, SORT_TYPE, POINT_TYPE_OFFERS };
+const FORM_DATE_FORMAT = 'd/m/Y h:i';
+
+export { POINT_TYPES, DESCRIPTIONS, DURATION, PRICE, CITIES, OFFERS, FILTERTYPE, SORT_TYPE, POINT_TYPE_OFFERS, FORM_DATE_FORMAT };

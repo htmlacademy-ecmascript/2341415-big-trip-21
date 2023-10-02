@@ -1,7 +1,7 @@
 import { format, differenceInDays, differenceInHours, differenceInMinutes, formatDuration } from 'date-fns';
 import { humanizePointDueDate } from '../utils.js';
 import AbstractView from '../framework/view/abstract-view.js';
-import { hide, show } from '../utils.js';
+import { hide, show, typeToCebabCase } from '../utils.js';
 import { DURATION } from '../const.js';
 
 function getDurationString(from, to) {
@@ -29,7 +29,7 @@ function getDurationString(from, to) {
     .replace(' minute', 'M');
 }
 
-function createOfferTemplate({ title, price, }) {
+function createOfferTemplate({ title, price }) {
   return `<li class="event__offer">
     <span class="event__offer-title">${title}</span>
     &plus;&euro;&nbsp;
@@ -37,13 +37,10 @@ function createOfferTemplate({ title, price, }) {
   </li>`;
 }
 
-function createPointTemplate({ point, destination, offers, selectedOfferIds = [offers.at(0).id]}) {
-
-  const selectedOffers = offers.filter((it) => selectedOfferIds.includes(it.id));
+function createPointTemplate({ point, destination, offers }) {
+  const selectedOffers = offers.filter((offer) => point.offers.includes(offer.id));
   const { dateFrom, dateTo, type, basePrice, isFavorite } = point;
-  const typeImgPath = type.toLowerCase();
-
-  const { city } = destination;
+  const typeImgPath = `img/icons/${typeToCebabCase(type)}.png`;
 
   const date = humanizePointDueDate(dateFrom);
 
@@ -51,9 +48,9 @@ function createPointTemplate({ point, destination, offers, selectedOfferIds = [o
   <div class="event">
     <time class="event__date" datetime="2019-03-18">${date}</time>
     <div class="event__type">
-      <img class="event__type-icon" width="42" height="42" src="img/icons/${typeImgPath}.png" alt="Event type icon">
+      <img class="event__type-icon" width="42" height="42" src="${typeImgPath}" alt="Event type icon">
     </div>
-    <h3 class="event__title">${type} ${city}</h3>
+    <h3 class="event__title">${type} ${destination.name}</h3>
     <div class="event__schedule">
       <p class="event__time">
         <time class="event__start-time" datetime="2019-03-18T10:30">${format(dateFrom, 'HH:mm')}</time>
@@ -116,10 +113,10 @@ export default class PointView extends AbstractView {
   #handleEditClick = null;
   #handleFavoriteClick = null;
 
-  constructor(point, listeners){
+  constructor(event, listeners){
     const { onEditClick, onFavoriteClick } = listeners;
     super();
-    this.point = point;
+    this.event = event;
     this.#handleEditClick = onEditClick;
     this.#handleFavoriteClick = onFavoriteClick;
 
@@ -130,11 +127,11 @@ export default class PointView extends AbstractView {
   }
 
   get template() {
-    return createPointTemplate(this.point);
+    return createPointTemplate(this.event);
   }
 
   get pointId() {
-    return this.point.point.id;
+    return this.event.point.id;
   }
 
   hide() {
