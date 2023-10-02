@@ -10,7 +10,6 @@ import FilterView from '../view/filter-view.js';
 export default class BoardPresenter {
   #container;
   #pointPresenter;
-  #boardPoints = [];
   #pointsModel;
   #filterElement;
 
@@ -22,7 +21,6 @@ export default class BoardPresenter {
   constructor({container, pointsModel, filterElement }) {
     this.#pointsModel = pointsModel;
     this.#container = container;
-    this.#boardPoints = pointsModel.filtredPoints;
     this.#sourcedBoardPoints = pointsModel.filtredPoints;
     this.#filterElement = filterElement;
     this.#pointPresenter = new PointPresenter({
@@ -49,7 +47,7 @@ export default class BoardPresenter {
         },
         {
           onFilterClick: (filterType) => {
-            this.#pointsModel.selectFilter(filterType);
+            this.#pointsModel.setFilter(filterType);
           },
         }
       ),
@@ -67,7 +65,6 @@ export default class BoardPresenter {
   }
 
   #handlePointChange = (updatedPoint) => {
-    this.#boardPoints = updateItem(this.#boardPoints, updatedPoint);
     this.#sourcedBoardPoints = updateItem(this.#sourcedBoardPoints, updatedPoint);
     this.#pointPresenter.get(updatedPoint.id).init(updatedPoint);
   };

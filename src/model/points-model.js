@@ -1,19 +1,47 @@
 import { FILTERTYPE } from '../const.js';
-import { sortPrice, sortTime, sortDay, isExpired, isAfterToday } from '../utils.js';
+import { sortPrice, sortTime, sortDay, isExpired, isAfterToday, formatPoint, getRequestParamsFrom } from '../utils.js';
 import { SORT_TYPE } from '../const.js';
+import PointsApi from '../backend-api/points-api.js';
+import OffersApi from '../backend-api/offers-api.js';
+import DestinationsApi from '../backend-api/destination-api.js';
 
 export default class PointsModel {
   #selectedFilter = null;
-  #points;
+  #sortBy = SORT_TYPE.DAY;
+
+  #subscribers = [];
+
   #pastPoints = [];
   #futurePoints = [];
   #todayPoints = [];
-  #subscribers = [];
-  #sortBy = SORT_TYPE.DAY;
 
-  constructor({ points }) {
-    this.#points = points;
-    this.#segregatePointsByDate();
+  #pointsMap = null;
+  destinationsMap = null;
+  offersMap = null;
+
+  #pointsApi = new PointsApi();
+  #destinationsApi = new DestinationsApi();
+  #offersApi = new OffersApi();
+
+  init() {
+    return Promise.all([
+      this.#pointsApi.getList(),
+      this.#destinationsApi.getList(),
+      this.#offersApi.getList(),
+    ]).then(([points, destinations, offers]) => {
+      this.#pointsMap = new Map(points.map((point) => [point.id, point]));
+      this.destinationsMap = new Map(destinations.map((destination) => [destination.id, destination]));
+      this.offersMap = new Map(offers.map((offer) => [offer.type, offer.offers]));
+      this.#segregatePointsByDate();
+    }).then(() => this);
+  }
+
+  get #points() {
+    return [...this.#pointsMap.values()];
+  }
+
+  get events() {
+    return this.#sortedPoints.map((point) => this.getEventOf(point));
   }
 
   get filterTypes() {
@@ -27,7 +55,7 @@ export default class PointsModel {
     }
   }
 
-  selectFilter(filterType) {
+  setFilter(filterType) {
     this.#selectedFilter = filterType;
     this.#sortBy = SORT_TYPE.DAY;
     this.#notify();
@@ -55,6 +83,10 @@ export default class PointsModel {
     return result;
   }
 
+  get destinations() {
+    return [...this.destinationsMap.values()];
+  }
+
   get points() {
     return this.#sortedPoints;
   }
@@ -64,12 +96,26 @@ export default class PointsModel {
   }
 
   getPoint(id) {
-    return this.#points.find((it) => it.point.id === id);
+    return this.#pointsMap.get(id);
+  }
+
+  getEvent(pointId) {
+    const point = this.#pointsMap.get(pointId);
+
+    return this.getEventOf(point);
+  }
+
+  getEventOf(point) {
+    const destination = this.destinationsMap.get(point.destination);
+    const offers = this.offersMap.get(point.type);
+
+    return { point, destination, offers };
   }
 
   switchPointIsFavorite(id) {
     const point = this.getPoint(id);
-    point.point.isFavorite = !point.point.isFavorite;
+    const pointParams = { ...getRequestParamsFrom(point), 'is_favorite': !point.isFavorite };
+    this.updatePoint(pointParams);
   }
 
   get #filtredPoints() {
@@ -85,15 +131,33 @@ export default class PointsModel {
     return this.#points;
   }
 
+  addPoint(pointParams) {
+    this.#pointsApi
+      .addPoint(pointParams)
+      .then((newPointParams) => this.#setPoint(newPointParams));
+  }
+
+  updatePoint(pointUpdateParams) {
+    this.#pointsApi
+      .updatePoint(pointUpdateParams)
+      .then((newPointParams) => this.#setPoint(newPointParams));
+  }
+
   #notify () {
-    this.#subscribers.forEach((fn) => fn(this.points));
+    this.#subscribers.forEach((fn) => fn(this.events));
+  }
+
+  #setPoint(pointParams) {
+    const point = formatPoint(pointParams);
+    this.#pointsMap.set(point.id, point);
+    this.#notify();
   }
 
   #segregatePointsByDate() {
     for (const point of this.#points) {
-      if (isExpired(point.point.dateTo)) {
+      if (isExpired(point.dateTo)) {
         this.#pastPoints.push(point);
-      } else if(isAfterToday(point.point.dateFrom)) {
+      } else if(isAfterToday(point.dateFrom)) {
         this.#futurePoints.push(point);
       } else {
         this.#todayPoints.push(point);

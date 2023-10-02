@@ -1,13 +1,14 @@
-import { logFormData, clear } from '../utils.js';
-import { render } from '../render.js';
+import { clear } from '../utils.js';
+import { render, RenderPosition } from '../render.js';
 import PointView from '../view/point-view.js';
 import PointEditView from '../view/point-edit-view.js';
 import NoPointView from '../view/no-point-view.js';
-import { cityDescriptions } from '../mock/fake-data.js';
+import NewPointView from '../view/new-point-view.js';
 
 export default class PointPresenter {
   #pointListContainer;
   #editFormView = null;
+  #newPointFormView = null;
   #pointsModel = null;
   #editingPointView = null;
 
@@ -17,33 +18,50 @@ export default class PointPresenter {
   }
 
   init() {
-    this.#pointsModel.subscribe((points) => this.#reRenderPointView(points));
-    this.#reRenderPointView(this.#pointsModel.points);
+    this.#pointsModel.subscribe((eventList) => this.#reRenderPointsView(eventList));
+    const events = this.#pointsModel.events;
+    this.#reRenderPointsView(events);
 
-    if (!this.#pointsModel.points.length) {
+    if (!events.length) {
       render(new NoPointView(), this.#pointListContainer.element);
     }
   }
 
-  #reRenderPointView(points) {
+  #reRenderPointsView(events) {
     clear(this.#pointListContainer.element);
     const onEditClick = (pointView) => this.#onEditClick(pointView);
+
     const onFavoriteClick = (pointView) => {
       this.#pointsModel.switchPointIsFavorite(pointView.pointId);
-      const newPoint = this.#pointsModel.getPoint(pointView.pointId);
-      const newPointView = new PointView(newPoint, { onEditClick, onFavoriteClick });
-      this.#pointListContainer.element.replaceChild(newPointView.element, pointView.element);
     };
 
-    for (const point of points) {
+    const newEvent = document.querySelector('.trip-main__event-add-btn');
+    const onNewPointClick = (pointView) => this.#onNewPointClick(pointView);
+    newEvent.addEventListener('click', onNewPointClick);
+
+    for (const point of events) {
       this.#renderPoint(new PointView(point, { onEditClick, onFavoriteClick }));
     }
   }
 
-  #closeForm(pointView) {
+  #closeEditPointForm(pointView) {
     this.#editFormView.close();
     pointView.show();
     this.#editingPointView = null;
+  }
+
+  #closeNewPointForm() {
+    this.#newPointFormView.close();
+  }
+
+  #closeForms() {
+    if (this.#newPointFormView) {
+      this.#newPointFormView.close();
+    }
+
+    if (this.#editFormView) {
+      this.#editFormView.close();
+    }
   }
 
   #renderPoint(pointView) {
@@ -55,27 +73,52 @@ export default class PointPresenter {
     this.#editingPointView = pointView;
     pointView.hide();
 
-    if(this.#editFormView) {
-      this.#editFormView.close();
-    }
+    this.#closeForms();
 
     this.#editFormView = new PointEditView(
       {
-        point: pointView.point,
-        cityDescriptions
+        event: pointView.event,
+        offersMap: this.#pointsModel.offersMap,
+        destinations: this.#pointsModel.destinations,
       },
       {
-        onFormSubmit: (formData) => {
-          logFormData(formData);
-          this.#closeForm(pointView);
+        onFormSubmit: (pointUpdateParams) => {
+          this.#pointsModel.updatePoint(pointUpdateParams);
+          this.#closeEditPointForm(pointView);
         },
-        onEsc: () => this.#closeForm(pointView),
-        onCancel: () => this.#closeForm(pointView),
+        onEsc: () => this.#closeEditPointForm(pointView),
+        onCancel: () => this.#closeEditPointForm(pointView),
       }
     );
     render(
       this.#editFormView,
       pointView.element
+    );
+  }
+
+  #onNewPointClick() {
+
+    this.#closeForms();
+
+    this.#newPointFormView = new NewPointView(
+      {
+        offersMap: this.#pointsModel.offersMap,
+        destinations: this.#pointsModel.destinations,
+      },
+      {
+        onFormSubmit: (pointParams) => {
+          this.#pointsModel.addPoint(pointParams);
+          this.#closeNewPointForm();
+        },
+        onEsc: () => this.#closeNewPointForm(),
+        onCancel: () => this.#closeNewPointForm(),
+      }
+    );
+
+    render(
+      this.#newPointFormView,
+      this.#pointListContainer.element,
+      RenderPosition.BEFOREBEGIN
     );
   }
 }
