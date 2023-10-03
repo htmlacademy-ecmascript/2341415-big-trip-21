@@ -1,5 +1,4 @@
-import {asyncronize} from '../utils.js';
-import {offers} from '../mock/fake-data.js';
+import {getRequest, checkRequestStatus} from '../utils.js';
 
 export default class OffersApi {
 
@@ -18,6 +17,10 @@ export default class OffersApi {
     ]>
    */
   getList() {
-    return asyncronize(offers);
+    return getRequest('offers')
+      .then((response) => {
+        checkRequestStatus(response.status, 200);
+        return response.json();
+      });
   }
 }

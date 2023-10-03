@@ -1,5 +1,4 @@
-import {destinations} from '../mock/fake-data.js';
-import {asyncronize} from '../utils.js';
+import {getRequest, checkRequestStatus } from '../utils.js';
 
 export default class DestinationApi {
 
@@ -19,6 +18,10 @@ export default class DestinationApi {
    * ]>
    */
   getList() {
-    return asyncronize(destinations);
+    return getRequest('destinations')
+      .then((response) => {
+        checkRequestStatus(response.status, 200);
+        return response.json();
+      });
   }
 }

@@ -3,6 +3,7 @@ import {render} from './render.js';
 import { RenderPosition } from './render.js';
 import BoardPresenter from './presenter/board-presenter.js';
 import PointsModel from './model/points-model.js';
+import { showPreloadMessage, showContent } from './utils.js';
 
 const bodyElement = document.querySelector('body');
 const headerElenent = bodyElement.querySelector('.page-header');
@@ -12,6 +13,7 @@ const mainElement = bodyElement.querySelector('.page-main');
 const eventListElement = mainElement.querySelector('.trip-events');
 
 function run(pointsModel) {
+  showContent();
   const boardPresenter = new BoardPresenter({
     container: eventListElement,
     pointsModel,
@@ -22,6 +24,7 @@ function run(pointsModel) {
   boardPresenter.init();
 }
 
+showPreloadMessage();
 new PointsModel()
   .init()
   .then((pointsModel) => run(pointsModel));

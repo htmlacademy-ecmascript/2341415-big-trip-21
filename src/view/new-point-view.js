@@ -3,6 +3,7 @@ import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import {extractPointParams, typeToCebabCase} from '../utils.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import { MIN_PRICE, MAX_PRICE } from '../const.js';
 
 function createPointTypeTemplate(type, checked = false) {
 
@@ -107,7 +108,7 @@ function createPointEditTemplate(state, cities) {
           <span class="visually-hidden">Price</span>
           &euro;
         </label>
-        <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price">
+        <input type="number" class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" min="${MIN_PRICE}" max="${MAX_PRICE}">
       </div>
 
       <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
