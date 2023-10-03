@@ -1,5 +1,5 @@
-import {asyncronize} from '../utils.js';
-import {points} from '../mock/fake-data.js';
+import {createPoint, getRequest, checkRequestStatus} from '../utils.js';
+import {HOST, AUTH_HEADERS} from '../const.js';
 
 export default class PointsApi {
 
@@ -20,19 +20,59 @@ export default class PointsApi {
       ]
    */
   getList() {
-    return asyncronize(points);
+    return getRequest('points')
+      .then((response) => {
+        checkRequestStatus(response.status, 200);
+        return response.json();
+      })
+      .then((pointParams) => pointParams.map((params) => createPoint(params)));
   }
 
   addPoint(pointParams) {
-    const point = {
-      id: crypto.randomUUID(),
-      ...pointParams
-    };
+    return fetch(
+      `${HOST}/points`,
+      {
+        method: 'POST',
+        headers: {
+          ...AUTH_HEADERS,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(pointParams),
+      }
+    ).then((response) => {
+      checkRequestStatus(response.status, 201);
+      return response.json();
+    })
+      .then((body) => createPoint(body));
+  }
 
-    return asyncronize(point);
+  deletePoint(id) {
+    return fetch(
+      `${HOST}/points/${id}`,
+      {
+        method: 'DELETE',
+        headers: AUTH_HEADERS,
+      }
+    ).then((response) => {
+      checkRequestStatus(response.status, 204);
+    });
   }
 
   updatePoint(pointParams) {
-    return asyncronize(pointParams);
+    return fetch(
+      `${HOST}/points/${pointParams.id}`,
+      {
+        method: 'PUT',
+        headers: {
+          ...AUTH_HEADERS,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(pointParams),
+      }
+    ).then((response) => {
+      checkRequestStatus(response.status, 200);
+      return response.json();
+    })
+      .then((body) => createPoint(body));
   }
 }

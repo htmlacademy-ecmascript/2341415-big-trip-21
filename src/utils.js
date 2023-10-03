@@ -1,4 +1,4 @@
-import {FORM_DATE_FORMAT} from './const';
+import {FORM_DATE_FORMAT, HOST, AUTH_HEADERS} from './const';
 import dayjs from 'dayjs';
 import { format, differenceInMinutes, differenceInDays } from 'date-fns';
 import flatpickr from 'flatpickr';
@@ -95,10 +95,6 @@ function sortPrice(pointA, pointB) {
   return pointB.basePrice - pointA.basePrice;
 }
 
-function asyncronize(value) {
-  return new Promise((resolve) => setTimeout(() => resolve(value), 0));
-}
-
 function extractPointParams(formData, state, isFavorite = false) {
   return {
     offers: state.selectedOfferIds ?? [],
@@ -107,9 +103,21 @@ function extractPointParams(formData, state, isFavorite = false) {
     type: state.type,
     'date_from': flatpickr.parseDate(formData.get('event-start-time'), FORM_DATE_FORMAT),
     'date_to': flatpickr.parseDate(formData.get('event-end-time'), FORM_DATE_FORMAT),
-    'base_price': formData.get('event-price'),
+    'base_price': Number(formData.get('event-price')),
   };
 }
+
+/* eslint-disable */
+function createPoint({ is_favorite, date_from, date_to, base_price, ...rest  }) {
+  return {
+    ...rest,
+    isFavorite: is_favorite,
+    dateFrom: new Date(date_from),
+    dateTo: new Date(date_to),
+    basePrice: base_price,
+  };
+}
+/* eslint-enable */
 
 function getRequestParamsFrom(point) {
   const { dateFrom, dateTo, basePrice, isFavorite, ...rest } = point;
@@ -123,8 +131,35 @@ function getRequestParamsFrom(point) {
   };
 }
 
+function getRequest(url) {
+  return fetch(`${HOST}/${url}`, { headers: AUTH_HEADERS });
+}
+
+function checkRequestStatus(status, expected) {
+  if (status !== expected) {
+    throw new Error(`server error, response status: ${status}`);
+  }
+}
+
+const infoMessage = document.querySelector('#info-message-id');
+const contentContainer = document.querySelector('#content-container-id');
+
+function showPreloadMessage() {
+  infoMessage.textContent = 'Загрузка данных...';
+  show(infoMessage);
+  hide(contentContainer);
+}
+
+function showContent() {
+  hide(infoMessage);
+  show(contentContainer);
+}
+
+function wait(timeout) {
+  return new Promise((res) => setTimeout(timeout, res));
+}
+
 export {
-  asyncronize,
   getRandomArrayElement,
   humanizePointDueDate,
   getRandomInteger,
@@ -144,5 +179,11 @@ export {
   extractPointParams,
   getRequestParamsFrom,
   typeToCammelCase,
-  typeToCebabCase
+  typeToCebabCase,
+  createPoint,
+  getRequest,
+  checkRequestStatus,
+  showPreloadMessage,
+  showContent,
+  wait
 };

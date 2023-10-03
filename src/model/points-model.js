@@ -1,5 +1,5 @@
 import { FILTERTYPE } from '../const.js';
-import { sortPrice, sortTime, sortDay, isExpired, isAfterToday, formatPoint, getRequestParamsFrom } from '../utils.js';
+import { sortPrice, sortTime, sortDay, isExpired, isAfterToday, getRequestParamsFrom } from '../utils.js';
 import { SORT_TYPE } from '../const.js';
 import PointsApi from '../backend-api/points-api.js';
 import OffersApi from '../backend-api/offers-api.js';
@@ -28,12 +28,13 @@ export default class PointsModel {
       this.#pointsApi.getList(),
       this.#destinationsApi.getList(),
       this.#offersApi.getList(),
-    ]).then(([points, destinations, offers]) => {
-      this.#pointsMap = new Map(points.map((point) => [point.id, point]));
-      this.destinationsMap = new Map(destinations.map((destination) => [destination.id, destination]));
-      this.offersMap = new Map(offers.map((offer) => [offer.type, offer.offers]));
-      this.#segregatePointsByDate();
-    }).then(() => this);
+    ]).catch(() => [[], [], []])
+      .then(([points, destinations, offers]) => {
+        this.#pointsMap = new Map(points.map((point) => [point.id, point]));
+        this.destinationsMap = new Map(destinations.map((destination) => [destination.id, destination]));
+        this.offersMap = new Map(offers.map((offer) => [offer.type, offer.offers]));
+        this.#segregatePointsByDate();
+      }).then(() => this);
   }
 
   get #points() {
@@ -132,13 +133,22 @@ export default class PointsModel {
   }
 
   addPoint(pointParams) {
-    this.#pointsApi
+    return this.#pointsApi
       .addPoint(pointParams)
       .then((newPointParams) => this.#setPoint(newPointParams));
   }
 
+  deletePoint(id) {
+    return this.#pointsApi
+      .deletePoint(id)
+      .then(() => {
+        this.#pointsMap.delete(id);
+        this.#notify();
+      });
+  }
+
   updatePoint(pointUpdateParams) {
-    this.#pointsApi
+    return this.#pointsApi
       .updatePoint(pointUpdateParams)
       .then((newPointParams) => this.#setPoint(newPointParams));
   }
@@ -147,8 +157,7 @@ export default class PointsModel {
     this.#subscribers.forEach((fn) => fn(this.events));
   }
 
-  #setPoint(pointParams) {
-    const point = formatPoint(pointParams);
+  #setPoint(point) {
     this.#pointsMap.set(point.id, point);
     this.#notify();
   }

@@ -55,13 +55,8 @@ export default class PointPresenter {
   }
 
   #closeForms() {
-    if (this.#newPointFormView) {
-      this.#newPointFormView.close();
-    }
-
-    if (this.#editFormView) {
-      this.#editFormView.close();
-    }
+    this.#newPointFormView?.close();
+    this.#editFormView?.close();
   }
 
   #renderPoint(pointView) {
@@ -83,11 +78,23 @@ export default class PointPresenter {
       },
       {
         onFormSubmit: (pointUpdateParams) => {
-          this.#pointsModel.updatePoint(pointUpdateParams);
-          this.#closeEditPointForm(pointView);
+          this.#pointsModel
+            .updatePoint(pointUpdateParams)
+            .then(
+              () => this.#closeEditPointForm(pointView),
+              () => this.#editFormView.shake()
+            );
         },
         onEsc: () => this.#closeEditPointForm(pointView),
         onCancel: () => this.#closeEditPointForm(pointView),
+        onDelete: (id) => {
+          this.#pointsModel
+            .deletePoint(id)
+            .then(
+              () => this.#closeEditPointForm(pointView),
+              () => () => this.#editFormView.shake(),
+            );
+        },
       }
     );
     render(
@@ -107,8 +114,12 @@ export default class PointPresenter {
       },
       {
         onFormSubmit: (pointParams) => {
-          this.#pointsModel.addPoint(pointParams);
-          this.#closeNewPointForm();
+          this.#pointsModel
+            .addPoint(pointParams)
+            .then(
+              () => this.#closeNewPointForm(),
+              () => this.#newPointFormView.shake()
+            );
         },
         onEsc: () => this.#closeNewPointForm(),
         onCancel: () => this.#closeNewPointForm(),

@@ -1,9 +1,10 @@
-import {POINT_TYPES, CITIES, FORM_DATE_FORMAT} from '../const.js';
+import {POINT_TYPES, FORM_DATE_FORMAT} from '../const.js';
 import {extractPointParams, typeToCammelCase, typeToCebabCase} from '../utils.js';
 import { format } from 'date-fns';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import { MIN_PRICE, MAX_PRICE } from '../const.js';
 
 function createPointTypeTemplate(type, checked = false) {
 
@@ -60,9 +61,9 @@ function createPointEditTemplate({ point }, state) {
 
       <div class="event__field-group  event__field-group--destination">
         <label class="event__label  event__type-output" for="ice-cream-choice">${type}</label>
-        <input class="event__input  event__input--destination" id="event-destination-1" list="event-destination-list-1" id="event-destination-1" name="event-destination-1" type="text" value=${city}>
-        <datalist id="event-destination-list-1">
-        ${CITIES.map((cityName) => `<option value="${cityName}"></option>`)}
+        <input class="event__input  event__input--destination" id="event-destination-1" list="edit-form-destination-list" required="value" id="event-destination-1" name="event-destination-1" type="text" value="${city}">
+        <datalist id="edit-form-destination-list">
+        ${state.cities.map((cityName) => `<option value="${cityName}"></option>`)}
         </datalist>
       </div>
       </div>
@@ -80,11 +81,14 @@ function createPointEditTemplate({ point }, state) {
           <span class="visually-hidden">Price</span>
           &euro;
         </label>
-        <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}">
+        <input type="number" class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" min="${MIN_PRICE}" max="${MAX_PRICE}" value="${basePrice}">
       </div>
 
       <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-      <button class="event__reset-btn" type="reset">Cancel</button>
+      <button class="event__reset-btn" type="reset">Delete</button>
+      <button class="event__rollup-btn" type="button">
+      <span class="visually-hidden">Open event</span>
+    </button>
     </header>
     <section class="event__details">
       <section class="event__section  event__section--offers">
@@ -115,26 +119,32 @@ export default class PointEditView extends AbstractStatefulView {
 
   #handleFormSubmit = null;
   #handlerFormEsc = null;
-  #handleFormCancel = null;
+  #handlePointDelete = null;
   #offersMap = null;
   #destinationsMap = null;
   #datepicker = null;
+  #handleFormCancel = null;
 
   constructor({ event, offersMap, destinations }, listeners) {
     super();
-    const {onFormSubmit, onEsc, onCancel} = listeners;
+    const {onFormSubmit, onEsc, onDelete, onCancel} = listeners;
     this.event = event;
     this.#offersMap = offersMap;
     this.#destinationsMap = new Map(destinations.map((destination) => [destination.name, destination]));
     this.#handleFormSubmit = onFormSubmit;
     this.#handlerFormEsc = onEsc;
+    this.#handlePointDelete = onDelete;
     this.#handleFormCancel = onCancel;
+    const cities = [...this.#destinationsMap.keys()];
+
     this._setState({
       type: event.point.type,
       offers: event.offers,
       selectedOfferIds: event.point.offers,
-      destination: event.destination
+      destination: event.destination,
+      cities
     });
+
     this._restoreHandlers();
 
   }
@@ -159,10 +169,12 @@ export default class PointEditView extends AbstractStatefulView {
 
   _restoreHandlers() {
     const form = this.element.querySelector('form');
-    const canceler = this.element.querySelector('.event__reset-btn');
+    const deleter = this.element.querySelector('.event__reset-btn');
 
     form.addEventListener('submit', this.#formSubmitHandler);
     document.addEventListener('keydown', this.#formEscHandler);
+    deleter.addEventListener('click', this.#pointDeleteHandler);
+    const canceler = this.element.querySelector('.event__rollup-btn');
     canceler.addEventListener('click', this.#formCancelHandler);
     const eventTypeGroup = form.querySelector('.event__type-group');
 
@@ -207,14 +219,19 @@ export default class PointEditView extends AbstractStatefulView {
     this.#handleFormSubmit(puintUpdateParams);
   };
 
+  #formCancelHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormCancel();
+  };
+
   #getEventUpdateParams(formData) {
     const { id, isFavorite } = this.event.point;
     return { id, ...extractPointParams(formData, this._state, isFavorite)};
   }
 
-  #formCancelHandler = (evt) => {
+  #pointDeleteHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormCancel();
+    this.#handlePointDelete(this.event.point.id);
   };
 
   #formEscHandler = (evt) => {
