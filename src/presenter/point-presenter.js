@@ -78,21 +78,30 @@ export default class PointPresenter {
       },
       {
         onFormSubmit: (pointUpdateParams) => {
+          this.#editFormView.setSaving();
+          // await wait(10000);
           this.#pointsModel
             .updatePoint(pointUpdateParams)
             .then(
               () => this.#closeEditPointForm(pointView),
-              () => this.#editFormView.shake()
+              () => {
+                this.#editFormView.enable();
+                this.#editFormView.shake();
+              }
             );
         },
         onEsc: () => this.#closeEditPointForm(pointView),
         onCancel: () => this.#closeEditPointForm(pointView),
         onDelete: (id) => {
+          this.#editFormView.setDeleting();
           this.#pointsModel
             .deletePoint(id)
             .then(
               () => this.#closeEditPointForm(pointView),
-              () => () => this.#editFormView.shake(),
+              () => {
+                this.#editFormView.enable();
+                this.#editFormView.shake();
+              },
             );
         },
       }
